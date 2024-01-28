@@ -1,0 +1,3 @@
+product:
+    path: /api/product
+    controller: App\Controller\ProductController::create
