@@ -27,6 +27,8 @@ class ProductController extends AbstractController
     #[Route('/', name: 'product_get', methods:['GET'])]
     public function index(EntityManagerInterface $entityManager, SerializerInterface $serializer, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
         $repository = $entityManager->getRepository(Product::class);
     
         $skuFilter = $request->query->get('sku');

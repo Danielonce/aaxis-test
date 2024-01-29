@@ -10,7 +10,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[Route('/auth')]
 class AuthController extends AbstractController
@@ -38,8 +37,7 @@ class AuthController extends AbstractController
         $this->entityManager->flush();
 
         $response = [
-            'message' => 'User registered successfully',
-            'user' => ['email' => $user->getEmail()],
+            'message' => 'User with email '. $user->getEmail() .' registered successfully'
         ];
 
         return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_CREATED);
@@ -48,12 +46,10 @@ class AuthController extends AbstractController
     #[Route('/login', name: 'auth_login', methods:['POST'])]
     public function login(): JsonResponse
     {
-        /** @var UserInterface $user */
         $user = $this->getUser();
 
         $response = [
-            'message' => 'User authenticated successfully',
-            'user' => ['email' => $user->getEmail()],
+            'message' => 'User with email '. $user->getEmail() .' authenticated successfully'
         ];
 
         return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_OK);
