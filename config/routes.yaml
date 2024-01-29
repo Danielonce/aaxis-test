@@ -5,3 +5,11 @@ product_get:
 product_create:
     path: /api/product/create
     controller: App\Controller\ProductController::create
+
+auth_register:
+    path: '/api/auth/register'
+    controller: 'App\Controller\AuthController::register'
+
+auth_login:
+    path: '/api/auth/login'
+    controller: 'App\Controller\AuthController::login'

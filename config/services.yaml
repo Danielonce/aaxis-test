@@ -25,3 +25,7 @@ services:
 
     Symfony\Component\Serializer\SerializerInterface: '@serializer'
     Symfony\Component\Serializer\Serializer: ~
+
+    App\Controller\AuthController:
+        arguments:
+            $apiResponseService: '@App\Service\ApiResponseService'
