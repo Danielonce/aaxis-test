@@ -1,3 +1,7 @@
-product:
+product_get:
     path: /api/product
-    controller: App\Controller\ProductController::new
+    controller: App\Controller\ProductController::index
+
+product_create:
+    path: /api/product/create
+    controller: App\Controller\ProductController::create
