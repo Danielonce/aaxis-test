@@ -31,7 +31,7 @@ Versions:
 
 8- Now you can access to all the API endpoints, just by passing the token on "Bearer Token" on the "Authorization" tab.
 
-<ins>App Preview</ins>
+<ins>If not authenticated</ins>
 ![Project Preview](/images/step3.png)
 
 <ins>App Preview</ins>
