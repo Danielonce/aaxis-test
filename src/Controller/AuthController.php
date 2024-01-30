@@ -2,42 +2,34 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Service\ApiResponseService;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\AuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[Route('/auth')]
 class AuthController extends AbstractController
 {
+    private $authService;
     private $apiResponseService;
-    private $entityManager;
 
-    public function __construct(ApiResponseService $apiResponseService, EntityManagerInterface $entityManager)
+    public function __construct(AuthService $authService, ApiResponseService $apiResponseService)
     {
+        $this->authService = $authService;
         $this->apiResponseService = $apiResponseService;
-        $this->entityManager = $entityManager;
     }
 
     #[Route('/register', name: 'auth_register', methods:['POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        $user = new User();
-        $user->setEmail($data['email']);
-        $user->setRoles(['ROLE_USER']);
-        $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $user = $this->authService->registerUser($data['email'], $data['password']);
 
         $response = [
-            'message' => 'User with email '. $user->getEmail() .' registered successfully'
+            'message' => 'User with email ' . $user->getEmail() . ' registered successfully',
         ];
 
         return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_CREATED);
@@ -46,11 +38,7 @@ class AuthController extends AbstractController
     #[Route('/login', name: 'auth_login', methods:['POST'])]
     public function login(): JsonResponse
     {
-        $user = $this->getUser();
-
-        $response = [
-            'message' => 'User with email '. $user->getEmail() .' authenticated successfully'
-        ];
+        $response = $this->authService->getAuthenticatedUserData();
 
         return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_OK);
     }

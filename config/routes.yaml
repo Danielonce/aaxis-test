@@ -6,6 +6,10 @@ product_create:
     path: /api/product/create
     controller: App\Controller\ProductController::create
 
+product_update:
+    path: /api/product/update
+    controller: App\Controller\ProductController::update
+
 auth_register:
     path: '/api/auth/register'
     controller: 'App\Controller\AuthController::register'

@@ -2,109 +2,81 @@
 
 namespace App\Controller;
 
-use App\Entity\Product;
 use App\Service\ApiResponseService;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\Pagination\Paginator;
+use App\Service\ProductService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/product')]
 class ProductController extends AbstractController
 {
     private $apiResponseService;
+    private $productService;
 
-    public function __construct(ApiResponseService $apiResponseService)
+    public function __construct(ApiResponseService $apiResponseService, ProductService $productService)
     {
         $this->apiResponseService = $apiResponseService;
+        $this->productService = $productService;
     }
 
     #[Route('/', name: 'product_get', methods:['GET'])]
-    public function index(EntityManagerInterface $entityManager, SerializerInterface $serializer, Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        $repository = $entityManager->getRepository(Product::class);
-    
         $skuFilter = $request->query->get('sku');
         $name = $request->query->get('name');
         $page = $request->query->getInt('page', 1);
         $itemsPerPage = $request->query->getInt('limit', 10);
-    
-        $queryBuilder = $repository->createQueryBuilder('p');
-    
-        if ($skuFilter) {
-            $queryBuilder
-                ->andWhere('p.sku LIKE :sku')
-                ->setParameter('sku', "%$skuFilter%")
-            ;
-        }
 
-        if ($name) {
-            $queryBuilder
-                ->andWhere('p.productName LIKE :name')
-                ->setParameter('name', "%$name%")
-            ;
-        }
-    
-        $query = $queryBuilder->getQuery();
-        $paginator = new Paginator($query);
-        $paginator->getQuery()
-            ->setFirstResult(($page - 1) * $itemsPerPage)
-            ->setMaxResults($itemsPerPage);
-    
-        $products = $paginator->getIterator()->getArrayCopy();
-    
-        $jsonProducts = $serializer->serialize($products, 'json');
-    
-        $response = [
-            'data' => json_decode($jsonProducts, true),
-            'meta' => [
-                'totalItems' => $paginator->count(),
-                'currentPage' => $page,
-                'itemsPerPage' => $itemsPerPage,
-            ],
-        ];
+        $response = $this->productService->getProducts($skuFilter, $name, $page, $itemsPerPage);
 
         return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_OK);
     }
 
     #[Route('/create', name: 'product_create', methods:['POST'])]
-    public function create(EntityManagerInterface $entityManager, Request $request, SerializerInterface $serializer): Response
+    public function create(Request $request, SerializerInterface $serializer): Response
     {
         $data = json_decode($request->getContent(), true);
+        
         try {
-            $createdProducts = [];
-    
-            foreach ($data as $productData) {
-                $product = new Product();
-                $product->setSku($productData['sku']);
-                $product->setProductName($productData['productName']);
-                $product->setDescription($productData['description']);
-    
-                $entityManager->persist($product);
-                $createdProducts[] = $product;
-            }
-    
-            $entityManager->flush();
-    
-            $jsonProducts = $serializer->serialize($createdProducts, 'json', [
-                AbstractNormalizer::GROUPS => ['product'],
-            ]);
-    
+            $createdProducts = $this->productService->createProducts($data);
+
             $response = [
                 'message' => 'Products created successfully',
-                'data' => json_decode($jsonProducts, true),
+                'data' => $createdProducts,
             ];
 
-            return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_CREATED);   
+            return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_CREATED);
         } catch (\Throwable $th) {
             return $this->apiResponseService->createApiError($th->getMessage(), JsonResponse::HTTP_CONFLICT);
+        }
+    }
+
+    #[Route('/update', name: 'product_update', methods: ['PATCH'])]
+    public function update(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!is_array($data) || empty($data)) {
+            return $this->apiResponseService->createApiError('Invalid JSON payload', JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $updatedProducts = $this->productService->updateProducts($data);
+
+            $response = [
+                'message' => 'Products updated successfully',
+                'data' => $updatedProducts,
+            ];
+
+            return $this->apiResponseService->createApiResponse($response, JsonResponse::HTTP_OK);
+        } catch (\InvalidArgumentException $e) {
+            return $this->apiResponseService->createApiError($e->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 }
