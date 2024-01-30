@@ -21,28 +21,28 @@ Versions:
 
 6- Open Postman and access to the route `/api/auth/register` (POST) to create a new user.
 
-<ins>App Preview</ins>
+<ins>Registering a single user:</ins>
 ![Project Preview](/images/step1.png)
 
-7- In `/api/auth/register`, get the token to authenticate the user you recently created.
+7- In `/api/auth/login` (POST), get the token to authenticate the user you recently created.
 
-<ins>App Preview</ins>
+<ins>Login:</ins>
 ![Project Preview](/images/step2.png)
 
 8- Now you can access to all the API endpoints, just by passing the token on "Bearer Token" on the "Authorization" tab.
 
-<ins>If not authenticated</ins>
+<ins>If not authenticated:</ins>
 ![Project Preview](/images/step3.png)
 
-<ins>App Preview</ins>
+<ins>Retrieving a list of products in /api/product once the user is authenticated:</ins>
 ![Project Preview](/images/authorized1.png)
 
 9- Try the rest of the endpoints:
 
-<ins>App Preview</ins>
+<ins>/api/product/create</ins>
 ![Project Preview](/images/authorized2.png)
 
-<ins>App Preview</ins>
+<ins>/api/product/update</ins>
 ![Project Preview](/images/authorized3.png)
 
 
